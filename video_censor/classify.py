@@ -14,7 +14,7 @@ def preprocess_img(sct):
     while True:
         sct_img = sct.grab(sct.monitors[0]) 
         img = Image.frombytes("RGB", sct_img.size, sct_img.bgra, "raw", "BGRX")
-        img = img.resize((224, 224))
+        img = img.resize(img_size)
         img = np.asarray(img)[..., ::-1] / 255.0 
         yield img
 
