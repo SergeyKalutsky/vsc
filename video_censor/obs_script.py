@@ -1,7 +1,5 @@
 import obspython as obs
 
-
-
 def blur():
     with open(r'C:\Users\immmaggo\Desktop\final_censor\communicator.txt', 'r') as f:
         try:
