@@ -1,7 +1,7 @@
 # video_censor
 Real time video recording censor 
 
-Project combines obs script and mobilenets models for real time NSFW classifiction of the recorded screen.
+Project combines obs script and mobilenets models for real time NSFW classifiction of the video stream.
 In case of detection of inappropriate imagery script tells obs to blur recording.
 
 Small demonstrations of how it works:
