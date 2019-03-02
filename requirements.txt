@@ -1,0 +1,6 @@
+mss==4.0.1
+numpy==1.16.2
+Pillow==5.4.1
+prefetch-generator==1.0.1
+tensorflow==1.13.1
+
