@@ -10,7 +10,7 @@ https://www.youtube.com/watch?v=mGjkkCDoM00
 
 https://www.youtube.com/watch?v=5ktVHWu-jgc&t=57s
 
-At this time its nothing more but a working prototype. I believe there is plenty of room to increase accuracy of the models
+At this time its nothing more but a working prototype, but there is certainly plenty of room to increase accuracy
 and optimize perfomance.
 
 
