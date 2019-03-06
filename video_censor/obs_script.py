@@ -3,7 +3,6 @@ import os
 import zmq
 import sys
 
-
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 socket.RCVTIMEO = 0
@@ -34,9 +33,9 @@ def update_status():
 
 
 def script_update(settings):
-    port = "5557"
-    socket.bind("tcp://*:%s" % port)
-    obs.timer_add(update_status, 15)
+    #Create a server
+    socket.bind("tcp://*:5557")
+    obs.timer_add(update_status, 3)
 
 
 def script_properties():
