@@ -1,13 +1,19 @@
 import obspython as obs
 import os
+import zmq
+import sys
+
+context = zmq.Context()
+socket = context.socket(zmq.REP)
+socket.RCVTIMEO = 0
+
 
 def script_description():
     return "Blurs the recording if inappropriate imagery detected"
 
 
-def blur():
+def blur(pred):
     #switches blur on if probability is high
-    pred = get_pred()
     source = obs.obs_get_source_by_name('blur')
     state = obs.obs_source_enabled(source)
     if state and pred <= 0.45:
@@ -17,27 +23,21 @@ def blur():
     obs.obs_source_release(source)
 
 
-def get_pred():
-    global path
-
+def update_status():
     try:
-        with open(os.path.normcase(path), "r") as f:
-            return float(f.read())
-    except:
+        pred = float(socket.recv())
+        socket.send(b"to clien")
+        blur(pred)
+    except zmq.Again:
         pass
 
 
 def script_update(settings):
-    global path
-
-    path = obs.obs_data_get_string(settings, "path")
-    pred = get_pred()
-    if pred is not None:
-        print("Script is running")
-        obs.timer_add(blur, 15)
+    #Create a server
+    socket.bind("tcp://*:5557")
+    obs.timer_add(update_status, 3)
 
 
 def script_properties():
     props = obs.obs_properties_create()
-    obs.obs_properties_add_text(props, "path", "Full path to communicator.txt", obs.OBS_TEXT_DEFAULT)
     return props

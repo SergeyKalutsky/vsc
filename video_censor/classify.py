@@ -1,3 +1,4 @@
+import zmq
 import mss
 import numpy as np
 from prefetch_generator import BackgroundGenerator
@@ -23,12 +24,15 @@ def predict(img):
     pred1 = model1.predict(np.array([img]))[0][0]
     pred2 = model2.predict(np.array([img]))[0][0]
     pred = np.mean([pred1, pred2])
-    print(pred)
-    with open(r'communicator.txt', 'w') as f:
-        f.write(str(round(pred, 3)))
-
+    return pred
 
 if __name__=='__main__':
+    context = zmq.Context()
+    socket = context.socket(zmq.REQ)
+    socket.connect("tcp://localhost:5557")
     with mss.mss() as sct:
         for img in BackgroundGenerator(preprocess_img(sct)):
-            predict(img)
+            pred = predict(img)
+            print(pred)
+            socket.send (str(pred).encode('utf-8'))
+            socket.recv()
