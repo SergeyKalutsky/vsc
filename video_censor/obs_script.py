@@ -4,36 +4,59 @@ import obspython as obs
 # import sys
 
 
-
-
-def script_update(settings):
-    pos = obs.vec2()
-
+def get_sceneitem():
     source = obs.obs_frontend_get_current_scene()
     scene = obs.obs_scene_from_source(source)
-
-    # w =
-    obs.obs_source_release(source)
-
     sceneitem = obs.obs_scene_find_source(scene, 'blur')
-    obs.obs_sceneitem_get_pos(sceneitem, pos)
-    print(pos.x, pos.y)
+    obs.obs_source_release(source)
+    return sceneitem
 
+
+def get_size():
+    source = obs.obs_get_source_by_name('blur')
+    w = obs.obs_source_get_width(source)
+    h = obs.obs_source_get_height(source)
+    obs.obs_source_release(source)
+    return w, h
+
+
+def sceneitem_croped_size(crop):
+    w, h = get_size()
+    w_reduce = crop.left + crop.right
+    h_reduce = crop.top + crop.bottom
+    w -= w_reduce
+    h -= h_reduce
+    return (w, h)
+
+
+def get_coordinates():
+
+    sceneitem = get_sceneitem()
+    
+    #start position
+    pos = obs.vec2()
+    obs.obs_sceneitem_get_pos(sceneitem, pos)
+    #scale ratio
+    ratio = obs.vec2()
+    obs.obs_sceneitem_get_scale(sceneitem, ratio)
+    #crop values
     crop = obs.obs_sceneitem_crop()
     obs.obs_sceneitem_get_crop(sceneitem, crop)
-    print(crop.left, crop.right)
-    # obs.obs_source_release(source)
 
+    w, h = sceneitem_croped_size(crop)
+    w *= ratio.x
+    h *= ratio.y
 
+    coordinates = {"top": int(pos.y), 
+                   "left": int(pos.x), 
+                   "width": int(w), 
+                   "height": int(h)}
 
+    return coordinates
 
-
-
-
-
-
-
-
+def script_update(settings):
+    coordinates = get_coordinates()
+    print(coordinates)
 
 
 
