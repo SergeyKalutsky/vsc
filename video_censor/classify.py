@@ -1,10 +1,10 @@
 import zmq
 import mss
 import ast
+import cv2
 import numpy as np
-from prefetch_generator import BackgroundGenerator
 from tensorflow import keras
-from PIL import Image
+from prefetch_generator import BackgroundGenerator
 
 img_size = (224, 224)
 model = keras.models.load_model('mobilenet1.3.h5')
@@ -13,15 +13,13 @@ model = keras.models.load_model('mobilenet1.3.h5')
 def preprocess_img(sct):
     #Generate and preprocess screenshot
     while True:
-        sct_img = sct.grab(sct.monitors[1])
-        img = Image.frombytes("RGB", sct_img.size, sct_img.bgra, "raw", "BGRX")
-        img = img.resize(img_size)
-        img = np.asarray(img)[..., ::-1] / 255.0 
+        img = np.asarray(sct.grab(sct.monitors[1]))[:,:,:3]
+        img = cv2.resize(img, (224, 224)) / 255.0
         yield img
 
 
 def predict(img):
-    pred = model.predict(np.array([img]))[0][0]
+    pred = model.predict(np.asarray([img]))[0][0]
     return pred
 
 
