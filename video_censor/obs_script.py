@@ -1,7 +1,21 @@
 import obspython as obs
-# import os
-# import zmq
-# import sys
+import os
+import zmq
+import sys
+
+
+context = zmq.Context()
+socket = context.socket(zmq.REP)
+socket.RCVTIMEO = 0
+
+
+def script_description():
+    return "Blurs the recording if inappropriate imagery detected"
+
+
+def script_properties():
+    props = obs.obs_properties_create()
+    return props
 
 
 def get_sceneitem():
@@ -12,7 +26,7 @@ def get_sceneitem():
     return sceneitem
 
 
-def get_size():
+def get_scene_size():
     source = obs.obs_get_source_by_name('blur')
     w = obs.obs_source_get_width(source)
     h = obs.obs_source_get_height(source)
@@ -21,7 +35,7 @@ def get_size():
 
 
 def sceneitem_croped_size(crop):
-    w, h = get_size()
+    w, h = get_scene_size()
     w_reduce = crop.left + crop.right
     h_reduce = crop.top + crop.bottom
     w -= w_reduce
@@ -54,57 +68,30 @@ def get_coordinates():
 
     return coordinates
 
+
+def blur(pred):
+    #switches blur on if probability is high
+    source = obs.obs_get_source_by_name('blur')
+    state = obs.obs_source_enabled(source)
+    if state and pred <= 0.45:
+        obs.obs_source_set_enabled(source, False)
+    if not state and pred > 0.45:
+        obs.obs_source_set_enabled(source, True)
+    obs.obs_source_release(source)
+
+
+def update_status():
+    try:
+        pred = float(socket.recv())
+        blur(pred)
+        coordinates = get_coordinates()
+        socket.send(str(coordinates).encode('utf-8'))
+    except zmq.Again:
+        pass
+
+
 def script_update(settings):
-    coordinates = get_coordinates()
-    print(coordinates)
+    #Create a server
+    socket.bind("tcp://*:5557")
+    obs.timer_add(update_status, 8)
 
-
-
-
-
-
-
-
-
-
-
-
-
-# context = zmq.Context()
-# socket = context.socket(zmq.REP)
-# socket.RCVTIMEO = 0
-
-
-# def script_description():
-#     return "Blurs the recording if inappropriate imagery detected"
-
-
-# def blur(pred):
-#     #switches blur on if probability is high
-#     source = obs.obs_get_source_by_name('blur')
-#     state = obs.obs_source_enabled(source)
-#     if state and pred <= 0.45:
-#         obs.obs_source_set_enabled(source, False)
-#     if not state and pred > 0.45:
-#         obs.obs_source_set_enabled(source, True)
-#     obs.obs_source_release(source)
-
-
-# def update_status():
-#     try:
-#         pred = float(socket.recv())
-#         socket.send(b"to clien")
-#         blur(pred)
-#     except zmq.Again:
-#         pass
-
-
-# def script_update(settings):
-#     #Create a server
-#     socket.bind("tcp://*:5557")
-#     obs.timer_add(update_status, 3)
-
-
-# def script_properties():
-#     props = obs.obs_properties_create()
-#     return props
