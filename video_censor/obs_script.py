@@ -40,7 +40,7 @@ def sceneitem_croped_size(crop):
     h_reduce = crop.top + crop.bottom
     w -= w_reduce
     h -= h_reduce
-    return (w, h)
+    return w, h
 
 
 def get_coordinates():
