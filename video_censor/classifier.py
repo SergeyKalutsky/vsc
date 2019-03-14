@@ -8,12 +8,12 @@ from prefetch_generator import background
 
 @background(max_prefetch=1)
 def screenshot(monitor):
-    """Generate and preprocess screenshot"""
+	"""Generate and preprocess screenshot"""
 
-    while True:
-    	img = np.asarray(sct.grab(monitor))[:,:,:3]
-    	img =  cv2.resize(img, (224, 224)) / 255.0 
-    	yield img
+	while True:
+		img = np.asarray(sct.grab(monitor))[:,:,:3]
+		img =  cv2.resize(img, (224, 224)) / 255.0 
+		yield img
 
 
 def predict(img):
@@ -49,6 +49,5 @@ if __name__=='__main__':
 	with mss.mss() as sct:
 		monitor = update_monitor(sct.monitors[2], screen_region)
 		for img in screenshot(monitor):
-			print(monitor)
 			exhange({"act": "stream censor",
-					 "pred": float(predict(img))})
+				     "pred": float(predict(img))})
