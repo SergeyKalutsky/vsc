@@ -1,6 +1,5 @@
 import zmq
 import mss
-import ast
 import cv2
 import numpy as np
 from tensorflow import keras
@@ -10,7 +9,7 @@ img_size = (224, 224)
 model = keras.models.load_model('mobilenet1.3.h5')
 
 
-def preprocess_img(sct):
+def preprocess_img():
     #Generate and preprocess screenshot
     while True:
         img = np.asarray(sct.grab(sct.monitors[1]))[:,:,:3]
@@ -39,10 +38,9 @@ if __name__=='__main__':
     port = 5557
     socket = connect(port)
     with mss.mss() as sct:
-        for img in BackgroundGenerator(preprocess_img(sct)):
+        for img in BackgroundGenerator(preprocess_img()):
             pred = predict(img)
             print(pred)
-            socket.send(str(pred).encode('utf-8'))
-            coor = ast.literal_eval(socket.recv().decode('utf-8'))
-            update_monitor(sct, coor)
-
+            socket.send_json({"action": "update screen",
+                              "prediction": float(pred)})
+            socket.recv()

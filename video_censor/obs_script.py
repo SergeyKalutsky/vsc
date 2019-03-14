@@ -1,7 +1,5 @@
 import obspython as obs
-import os
 import zmq
-import sys
 
 
 context = zmq.Context()
@@ -47,13 +45,13 @@ def get_coordinates():
 
     sceneitem = get_sceneitem()
     
-    #start position
+    # Starting position
     pos = obs.vec2()
     obs.obs_sceneitem_get_pos(sceneitem, pos)
-    #scale ratio
+    # Scale ratio
     ratio = obs.vec2()
     obs.obs_sceneitem_get_scale(sceneitem, ratio)
-    #crop values
+    # Crop values
     crop = obs.obs_sceneitem_crop()
     obs.obs_sceneitem_get_crop(sceneitem, crop)
 
@@ -70,7 +68,7 @@ def get_coordinates():
 
 
 def blur(pred):
-    #switches blur on if probability is high
+    # Switches blur on if probability is high
     source = obs.obs_get_source_by_name('blur')
     state = obs.obs_source_enabled(source)
     if state and pred <= 0.45:
@@ -82,16 +80,21 @@ def blur(pred):
 
 def update_status():
     try:
-        pred = float(socket.recv())
-        blur(pred)
-        coordinates = get_coordinates()
-        socket.send(str(coordinates).encode('utf-8'))
+        msg = socket.recv_json()
+        # Update screenshot area to selected region in OBS
+        if msg["action"] == "screen":
+            coordinates = get_coordinates()
+            socket.send_json(coordinates)
+        # Change visibility of "blur" layer based on prediction value
+        elif msg["action"] == "update screen":
+            blur(msg['prediction'])
+            socket.send(b"updated")
     except zmq.Again:
         pass
 
 
 def script_update(settings):
-    #Create a server
+    # Create a server
     socket.bind("tcp://*:5557")
     obs.timer_add(update_status, 8)
 
