@@ -34,10 +34,8 @@ def get_scene_size():
 
 def sceneitem_croped_size(crop):
     w, h = get_scene_size()
-    w_reduce = crop.left + crop.right
-    h_reduce = crop.top + crop.bottom
-    w -= w_reduce
-    h -= h_reduce
+    w -= crop.left + crop.right
+    h -= crop.top + crop.bottom
     return w, h
 
 
@@ -82,13 +80,12 @@ def update_status():
     try:
         msg = socket.recv_json()
         # Update screenshot area to selected region in OBS
-        if msg["action"] == "get screen region":
-            coordinates = get_coordinates()
-            socket.send_json(coordinates)
+        if msg["act"] == "get screen region":
+            socket.send_json(get_coordinates())
         # Change visibility of "blur" layer based on prediction value
-        elif msg["action"] == "update screen":
-            blur(msg['prediction'])
-            socket.send(b"updated")
+        elif msg["act"] == "stream censor":
+            blur(msg['pred'])
+            socket.send_json({})
     except zmq.Again:
         pass
 

@@ -6,13 +6,12 @@ from tensorflow import keras
 from prefetch_generator import background
 
 
-model = keras.models.load_model('mobilenet1.3.h5')
-
 @background(max_prefetch=1)
-def preprocess_img(screen_part):
-    #Generate and preprocess screenshot
+def screenshot(monitor):
+    """Generate and preprocess screenshot"""
+
     while True:
-    	img = np.asarray(sct.grab(screen_part))[:,:,:3]
+    	img = np.asarray(sct.grab(monitor))[:,:,:3]
     	img =  cv2.resize(img, (224, 224)) / 255.0 
     	yield img
 
@@ -37,16 +36,19 @@ def connect(port):
 	return socket
 
 
+def exhange(msg):
+	socket.send_json(msg)
+	return socket.recv_json()
+
+
 if __name__=='__main__':
 	port = 5557
 	socket = connect(port)
-	socket.send_json({"action": "get screen region"})
-	screen_part = socket.recv_json()
+	model = keras.models.load_model('mobilenet1.3.h5')
+	screen_region = exhange({"act": "get screen region"})
 	with mss.mss() as sct:
-		screen_part = update_monitor(sct.monitors[2], screen_part)
-		for img in preprocess_img(screen_part):
-			pred = predict(img)
-			print(pred)
-			socket.send_json({"action": "update screen",
-				"prediction": float(pred)})
-			socket.recv()
+		monitor = update_monitor(sct.monitors[2], screen_region)
+		for img in screenshot(monitor):
+			print(monitor)
+			exhange({"act": "stream censor",
+					 "pred": float(predict(img))})
