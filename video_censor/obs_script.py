@@ -82,7 +82,7 @@ def update_status():
     try:
         msg = socket.recv_json()
         # Update screenshot area to selected region in OBS
-        if msg["action"] == "screen":
+        if msg["action"] == "get screen region":
             coordinates = get_coordinates()
             socket.send_json(coordinates)
         # Change visibility of "blur" layer based on prediction value
