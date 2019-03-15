@@ -1,4 +1,4 @@
-# video_censor
+# videostream_censor
 Real time video recording censor 
 
 
