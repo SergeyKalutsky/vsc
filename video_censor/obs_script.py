@@ -3,9 +3,18 @@ import zmq
 import json
 import os
 
-context = zmq.Context()
-socket = context.socket(zmq.REP)
-socket.RCVTIMEO = 0
+
+
+# class OBS_Socket():
+#     def __init__(self, port):
+#         self.port = port
+
+#     def connect(self):
+#         context = zmq.Context()
+#         consumer = context.socket(zmq.PULL)
+#         poller = zmq.Poller()
+#         poller.register(consumer, zmq.POLLIN)
+
 
 
 def script_description():
@@ -96,7 +105,9 @@ def get_coordinates():
     return coordinates
 
 
-def blur(pred, layer_name, threshold):
+def blur(pred):
+    global layer_name
+    global threshold
     # Switches blur on if probability is high
     source = obs.obs_get_source_by_name(layer_name)
     state = obs.obs_source_enabled(source)
@@ -108,22 +119,16 @@ def blur(pred, layer_name, threshold):
 
 
 def update_status():
-    try:
-        msg = socket.recv_json()
-        # Update screenshot area to selected region in OBS
-        if msg["act"] == "get screen region":
-            socket.send_json(get_coordinates())
-        # Change visibility of "blur" layer based on prediction value
-        elif msg["act"] == "stream censor":
-            blur(msg['pred'])
-            socket.send_json({})
-    except zmq.Again:
-        pass
+    if poller.poll(0):
+        msg = consumer.recv_pyobj()
+        blur(msg)
 
 
 def script_update(settings):
     global project_dir
     global conf
+    global layer_name
+    global threshold
     project_dir = obs.obs_data_get_string(settings, "project_dir")
     threshold = obs.obs_data_get_double(settings, "pred_threshold")
     interval = obs.obs_data_get_int(settings, "interval")
@@ -133,6 +138,7 @@ def script_update(settings):
     conf = {"monitor": obs.obs_data_get_int(settings, "monitor_num"),
             "port": port,
             }
-    """ socket.bind("tcp://*:5557")
-             obs.timer_add(update_status, 8)"""
+
+    consumer.bind(f"tcp://127.0.0.1:{port}")
+    obs.timer_add(update_status, interval)
 
