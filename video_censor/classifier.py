@@ -31,11 +31,12 @@ def update_monitor(monitor, screen_part):
     return monitor
 
 
-def connect(port):
+def connect(port, socket_type=zmq.REQ):
     context = zmq.Context()
-    socket = context.socket(zmq.PUSH)
+    socket = context.socket(socket_type)
     socket.connect(f"tcp://127.0.0.1:{port}")
     return socket
+
 
 def parse_conf():
     with open("conf.json", 'r') as f:
@@ -51,6 +52,7 @@ if __name__=='__main__':
         monitor = update_monitor(sct.monitors[mon], cor)
         for img in screenshot(monitor):
             pred = random.random()
-            print(pred)
             producer.send_pyobj(pred)
+            producer.recv()
+            print(pred)
 

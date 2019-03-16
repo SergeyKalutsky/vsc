@@ -4,17 +4,38 @@ import json
 import os
 
 
+class OBS_Socket():
+    def __init__(self, socket_type=zmq.REP, poller_type=zmq.POLLIN):
+        self._port = 0
+        self.socket = zmq.Context().socket(socket_type)
+        self.poller = zmq.Poller()
+        self.poller.register(self.socket, poller_type)
 
-# class OBS_Socket():
-#     def __init__(self, port):
-#         self.port = port
+    def bind(self, port):
 
-#     def connect(self):
-#         context = zmq.Context()
-#         consumer = context.socket(zmq.PULL)
-#         poller = zmq.Poller()
-#         poller.register(consumer, zmq.POLLIN)
+        if not self._port:
+            self.socket.bind(f"tcp://127.0.0.1:{port}")
+            self._port = port
 
+        elif self._port != port:
+            self.socket.unbind(f"tcp://127.0.0.1:{self._port}")
+            self.socket.bind(f"tcp://127.0.0.1:{port}")
+            self._port = port
+
+
+    def poll(self, rcv_time=0):
+        return self.poller.poll(rcv_time)
+    
+
+    def recv(self):
+        return self.socket.recv_pyobj()
+
+    def send(self):
+        return self.socket.send(b'')
+
+
+
+socket = OBS_Socket()
 
 
 def script_description():
@@ -119,8 +140,9 @@ def blur(pred):
 
 
 def update_status():
-    if poller.poll(0):
-        msg = consumer.recv_pyobj()
+    if socket.poll():
+        msg = socket.recv()
+        socket.send()
         blur(msg)
 
 
@@ -139,6 +161,6 @@ def script_update(settings):
             "port": port,
             }
 
-    consumer.bind(f"tcp://127.0.0.1:{port}")
+    socket.bind(port)
     obs.timer_add(update_status, interval)
 
