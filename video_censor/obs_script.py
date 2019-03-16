@@ -1,6 +1,7 @@
 import obspython as obs
 import zmq
-
+import json
+import os
 
 context = zmq.Context()
 socket = context.socket(zmq.REP)
@@ -12,9 +13,30 @@ def script_description():
 
 
 def script_properties():
-    props = obs.obs_properties_create()
-    return props
+    p = obs.obs_properties_create()
+    obs.obs_properties_add_path(p, "project_dir", "Project folder",
+                                obs.OBS_PATH_DIRECTORY, "", os.path.expanduser("~"))
+    obs.obs_properties_add_float_slider(p, "pred_threshold", "Prediction Threshold", 0.0, 1.0, 0.05)
+    obs.obs_properties_add_int(p, "monitor_num", "Monitor Number", 1, 100, 1)
+    obs.obs_properties_add_int(p, "port", "Port", 1, 10000, 1)
+    obs.obs_properties_add_int(p, "interval", "Quiery interval(ms)", 1, 1000, 1)
+    obs.obs_properties_add_button(p, "saved", "Save Configurations", button_pressed)
+    return p
 
+def script_defaults(settings):
+    obs.obs_data_set_default_double(settings, "pred_threshold", 0.5)
+    obs.obs_data_set_default_int(settings, "monitor_num", 1)
+    obs.obs_data_set_default_int(settings, "port", 5557)
+    obs.obs_data_set_default_int(settings, "interval", 33)
+
+def button_pressed(properties, button):
+    global project_dir
+    global conf
+    conf["coordinates"] = get_coordinates()
+    with open(os.path.join(project_dir, "conf.json"), "w") as f:
+        json.dump(conf, f)
+    print("Configurations has been saved")
+    return True
 
 def get_sceneitem():
     source = obs.obs_frontend_get_current_scene()
@@ -91,7 +113,16 @@ def update_status():
 
 
 def script_update(settings):
-    # Create a server
-    socket.bind("tcp://*:5557")
-    obs.timer_add(update_status, 8)
+    global project_dir
+    global conf
+    project_dir = obs.obs_data_get_string(settings, "project_dir")
+    threshold = obs.obs_data_get_double(settings, "pred_threshold")
+    interval = obs.obs_data_get_int(settings, "interval")
+    port =  obs.obs_data_get_int(settings, "port")
+
+    conf = {"monitor": obs.obs_data_get_int(settings, "monitor_num"),
+            "port": port,
+            }
+    """ socket.bind("tcp://*:5557")
+             obs.timer_add(update_status, 8)"""
 
