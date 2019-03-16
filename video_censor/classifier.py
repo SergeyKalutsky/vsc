@@ -1,8 +1,10 @@
+import os
 import zmq
 import mss
+import json
 import cv2
 import numpy as np
-from tensorflow import keras
+# from tensorflow import keras
 from prefetch_generator import background
 
 
@@ -35,19 +37,19 @@ def connect(port):
 	socket.connect(f"tcp://localhost:{port}")
 	return socket
 
-
-def exhange(msg):
-	socket.send_json(msg)
-	return socket.recv_json()
-
+def parse_conf():
+	cwd = os.getcwd()
+	with open(os.path.join(cwd, "conf.json"), 'r') as f:
+		conf = json.load(f)
+	return conf["monitor"], conf["coordinates"] conf["port"]
 
 if __name__=='__main__':
-	port = 5557
+	mon, cor, port = parse_conf()
 	socket = connect(port)
 	model = keras.models.load_model('mobilenet1.3.h5')
-	screen_region = exhange({"act": "get screen region"})
 	with mss.mss() as sct:
-		monitor = update_monitor(sct.monitors[2], screen_region)
+		monitor = update_monitor(mon, cor)
 		for img in screenshot(monitor):
 			exhange({"act": "stream censor",
 				     "pred": float(predict(img))})
+
