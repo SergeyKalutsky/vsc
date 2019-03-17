@@ -39,16 +39,9 @@ class OBS_ScriptSettings():
     default_fun = {bool: obs.obs_data_set_default_bool, str: obs.obs_data_set_default_string,
                    int: obs.obs_data_set_default_int, float: obs.obs_data_set_default_double}
 
-    settings = {"project_dir": "",
-                "pred_threshold": 0.5,
-                "monitor_num": 1,
-                "port": 5557,
-                "interval": 30,
-                "source": ""
-    }
-
-    def __init__(self):
+    def __init__(self, settings):
         self.prop_obj = None
+        self.settings = settings
 
     def create_properies(self):
         self.prop_obj = obs.obs_properties_create()
@@ -91,8 +84,74 @@ class OBS_ScriptSettings():
                 self.settings[name] = self.getter_fun[type(value)](settings, name)
 
 
+
+class OBS_Sceneitem():
+    def __init__(self, source_name):
+        self.source_name = source_name
+        self.sceneitem = self._set_sceneitem(self.source_name)
+
+    def _set_sceneitem(self, source_name):
+        source = obs.obs_frontend_get_current_scene()
+        scene = obs.obs_scene_from_source(source)
+        sceneitem = obs.obs_scene_find_source(scene, source_name)
+        obs.obs_source_release(source)
+        return sceneitem
+
+    def _position(self):
+        pos = obs.vec2()
+        obs.obs_sceneitem_get_pos(self.sceneitem, pos)
+        return pos
+
+    def _scale(self):
+        ratio = obs.vec2()
+        obs.obs_sceneitem_get_scale(self.sceneitem, ratio)
+        return ratio
+
+    def _crop(self):
+        crop = obs.obs_sceneitem_crop()
+        obs.obs_sceneitem_get_crop(self.sceneitem, crop)
+        return crop
+
+    def source_size(self):
+        source = obs.obs_get_source_by_name(self.source_name)
+        w = obs.obs_source_get_width(source)
+        h = obs.obs_source_get_height(source)
+        obs.obs_source_release(source)
+        return w, h
+
+    def sceneitem_size(self):
+        w, h = self.source_size()
+        crop = self._crop()
+        ratio = self._scale()
+
+        w -= (crop.left + crop.right)
+        h -= (crop.top + crop.bottom)
+        w *= ratio.x
+        h *= ratio.y
+        return w, h
+
+    def coordinates(self):
+
+        pos = self._position()
+        w, h = self.sceneitem_size()
+
+        coordinates = {"top": int(pos.y), 
+                       "left": int(pos.x), 
+                       "width": int(w), 
+                       "height": int(h)}
+
+        return coordinates
+
+
+DEFAULTS = {"project_dir": "",
+            "pred_threshold": 0.5,
+            "monitor_num": 1,
+            "port": 5557,
+            "interval": 30,
+            "source": ""
+}
 socket = OBS_Socket()
-script = OBS_ScriptSettings()
+script = OBS_ScriptSettings(settings=DEFAULTS)
 
 
 def script_description():
@@ -110,66 +169,20 @@ def script_properties():
     script.add_button("save", "Save Configurations", button_pressed)
     return script.prop_obj
 
-def button_pressed(properties, button):
-    conf = script.settings.copy()
-    conf['coordinates'] = get_coordinates()
-    with open(os.path.join(conf["project_dir"], "conf.json"), "w") as f:
-            json.dump(conf, f)
-    print("Configurations has been saved")
-    return True
 
 def script_defaults(settings):
     script.set_defaults(settings)
 
 
-def get_sceneitem_by_source(source_name):
-    source = obs.obs_frontend_get_current_scene()
-    scene = obs.obs_scene_from_source(source)
-    sceneitem = obs.obs_scene_find_source(scene, source_name)
-    obs.obs_source_release(source)
-    return sceneitem
+def button_pressed(properties, button):
+    conf = script.settings.copy()
+    scenitem = OBS_Sceneitem(source_name=conf["source"])
+    conf['coordinates'] = scenitem.coordinates()
+    with open(os.path.join(conf["project_dir"], "conf.json"), "w") as f:
+            json.dump(conf, f)
+    print("Configurations has been saved")
+    return True
 
-
-def get_source_size(source_name):
-    source = obs.obs_get_source_by_name(source_name)
-    w = obs.obs_source_get_width(source)
-    h = obs.obs_source_get_height(source)
-    obs.obs_source_release(source)
-    return w, h
-
-
-def source_croped_size(source_size, crop):
-    w, h = source_size
-    w -= crop.left + crop.right
-    h -= crop.top + crop.bottom
-    return w, h
-
-
-def get_coordinates():
-    source_name = script.settings['source']
-    sceneitem = get_sceneitem_by_source(source_name)
-    
-    # Starting position
-    pos = obs.vec2()
-    obs.obs_sceneitem_get_pos(sceneitem, pos)
-    # Scale ratio
-    ratio = obs.vec2()
-    obs.obs_sceneitem_get_scale(sceneitem, ratio)
-    # Crop values
-    crop = obs.obs_sceneitem_crop()
-    obs.obs_sceneitem_get_crop(sceneitem, crop)
-
-    w, h = get_source_size(source_name)
-    w, h = source_croped_size((w, h), crop)
-    w *= ratio.x
-    h *= ratio.y
-
-    coordinates = {"top": int(pos.y), 
-                   "left": int(pos.x), 
-                   "width": int(w), 
-                   "height": int(h)}
-
-    return coordinates
 
 def blur(set_blur):
     # Switches blur on if probability is high
