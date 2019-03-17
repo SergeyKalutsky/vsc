@@ -22,20 +22,77 @@ class OBS_Socket():
             self.socket.bind(f"tcp://127.0.0.1:{port}")
             self._port = port
 
-
     def poll(self, rcv_time=0):
         return self.poller.poll(rcv_time)
     
-
     def recv(self):
         return self.socket.recv_pyobj()
 
-    def send(self):
-        return self.socket.send(b'')
+    def send(self, msg=b""):
+        return self.socket.send(msg)
 
+
+class OBS_ScriptSettings():
+
+    getter_fun = {bool: obs.obs_data_get_bool, str: obs.obs_data_get_string,
+                  int: obs.obs_data_get_int, float: obs.obs_data_get_double}
+    default_fun = {bool: obs.obs_data_set_default_bool, str: obs.obs_data_set_default_string,
+                   int: obs.obs_data_set_default_int, float: obs.obs_data_set_default_double}
+
+    settings = {"project_dir": "",
+                "pred_threshold": 0.5,
+                "monitor_num": 1,
+                "port": 5557,
+                "interval": 30,
+                "source": ""
+    }
+
+    def __init__(self):
+        self.prop_obj = None
+
+    def create_properies(self):
+        self.prop_obj = obs.obs_properties_create()
+
+    def add_path(self, name, description):
+        obs.obs_properties_add_path(self.prop_obj, name, description,
+                                    obs.OBS_PATH_DIRECTORY, "", os.path.expanduser("~"))
+
+    def add_int(self, name, description, vals):
+        obs.obs_properties_add_int(self.prop_obj, name, description, *vals)
+
+    def add_float_slider(self, name, description, vals):
+        obs.obs_properties_add_float_slider(self.prop_obj, name, description, *vals)
+
+    def add_list(self, name, description, source_type):
+        p = obs.obs_properties_add_list(self.prop_obj, name, description, 
+                                        obs.OBS_COMBO_TYPE_EDITABLE, obs.OBS_COMBO_FORMAT_STRING)
+
+        def _add_sources(source_type, prop):
+            sources = obs.obs_enum_sources()
+            if sources is not None:
+                for source in sources:
+                    source_id = obs.obs_source_get_id(source)
+                    if source_id == source_type:
+                        name = obs.obs_source_get_name(source)
+                        obs.obs_property_list_add_string(prop, name, name)
+            obs.source_list_release(sources)
+
+        _add_sources(source_type, p)
+
+    def add_button(self, name, description, callback):
+        obs.obs_properties_add_button(self.prop_obj, name, description, callback)
+
+    def set_defaults(self, settings):
+        for name, value in self.settings.items():
+            self.default_fun[type(value)](settings, name, value)
+
+    def update(self, settings):
+        for name, value in self.settings.items():
+                self.settings[name] = self.getter_fun[type(value)](settings, name)
 
 
 socket = OBS_Socket()
+script = OBS_ScriptSettings()
 
 
 def script_description():
@@ -43,66 +100,54 @@ def script_description():
 
 
 def script_properties():
-    p = obs.obs_properties_create()
-    obs.obs_properties_add_path(p, "project_dir", "Project folder",
-                                obs.OBS_PATH_DIRECTORY, "", os.path.expanduser("~"))
-    obs.obs_properties_add_float_slider(p, "pred_threshold", "Prediction Threshold", 0.0, 1.0, 0.05)
-    obs.obs_properties_add_int(p, "monitor_num", "Monitor Number", 1, 100, 1)
-    obs.obs_properties_add_int(p, "port", "Port", 1, 10000, 1)
-    obs.obs_properties_add_int(p, "interval", "Quiery interval(ms)", 1, 1000, 1)
-    p1 = obs.obs_properties_add_list(p, "sources", "Blur Source", obs.OBS_COMBO_TYPE_EDITABLE, obs.OBS_COMBO_FORMAT_STRING)
-    sources = obs.obs_enum_sources()
-    if sources is not None:
-        for source in sources:
-            source_id = obs.obs_source_get_id(source)
-            if source_id == "monitor_capture":
-                name = obs.obs_source_get_name(source)
-                obs.obs_property_list_add_string(p1, name, name)
-    obs.source_list_release(sources)
-    obs.obs_properties_add_button(p, "saved", "Save Configurations", button_pressed)
-    return p
-
-def script_defaults(settings):
-    obs.obs_data_set_default_double(settings, "pred_threshold", 0.5)
-    obs.obs_data_set_default_int(settings, "monitor_num", 1)
-    obs.obs_data_set_default_int(settings, "port", 5557)
-    obs.obs_data_set_default_int(settings, "interval", 33)
+    script.create_properies()
+    script.add_path("project_dir", "Project folder")
+    script.add_float_slider("pred_threshold", "Prediction Threshold", (0.0, 1.0, 0.05))
+    script.add_int("monitor_num", "Monitor Number", (1, 100, 1))
+    script.add_int("port", "Port", (1, 10000, 1))
+    script.add_int("interval", "Quiery interval(ms)", (1, 10000, 1))
+    script.add_list("source", "Blur Source", source_type="monitor_capture")
+    script.add_button("save", "Save Configurations", button_pressed)
+    return script.prop_obj
 
 def button_pressed(properties, button):
-    global project_dir
-    global conf
-    conf["coordinates"] = get_coordinates()
-    with open(os.path.join(project_dir, "conf.json"), "w") as f:
-        json.dump(conf, f)
+    conf = script.settings.copy()
+    conf['coordinates'] = get_coordinates()
+    with open(os.path.join(conf["project_dir"], "conf.json"), "w") as f:
+            json.dump(conf, f)
     print("Configurations has been saved")
     return True
 
-def get_sceneitem():
+def script_defaults(settings):
+    script.set_defaults(settings)
+
+
+def get_sceneitem_by_source(source_name):
     source = obs.obs_frontend_get_current_scene()
     scene = obs.obs_scene_from_source(source)
-    sceneitem = obs.obs_scene_find_source(scene, 'blur')
+    sceneitem = obs.obs_scene_find_source(scene, source_name)
     obs.obs_source_release(source)
     return sceneitem
 
 
-def get_scene_size():
-    source = obs.obs_get_source_by_name('blur')
+def get_source_size(source_name):
+    source = obs.obs_get_source_by_name(source_name)
     w = obs.obs_source_get_width(source)
     h = obs.obs_source_get_height(source)
     obs.obs_source_release(source)
     return w, h
 
 
-def sceneitem_croped_size(crop):
-    w, h = get_scene_size()
+def source_croped_size(source_size, crop):
+    w, h = source_size
     w -= crop.left + crop.right
     h -= crop.top + crop.bottom
     return w, h
 
 
 def get_coordinates():
-
-    sceneitem = get_sceneitem()
+    source_name = script.settings['source']
+    sceneitem = get_sceneitem_by_source(source_name)
     
     # Starting position
     pos = obs.vec2()
@@ -114,7 +159,8 @@ def get_coordinates():
     crop = obs.obs_sceneitem_crop()
     obs.obs_sceneitem_get_crop(sceneitem, crop)
 
-    w, h = sceneitem_croped_size(crop)
+    w, h = get_source_size(source_name)
+    w, h = source_croped_size((w, h), crop)
     w *= ratio.x
     h *= ratio.y
 
@@ -125,16 +171,13 @@ def get_coordinates():
 
     return coordinates
 
-
-def blur(pred):
-    global layer_name
-    global threshold
+def blur(set_blur):
     # Switches blur on if probability is high
     source = obs.obs_get_source_by_name(layer_name)
-    state = obs.obs_source_enabled(source)
-    if state and pred <= threshold:
+    blured = obs.obs_source_enabled(source)
+    if blured and not set_blur:
         obs.obs_source_set_enabled(source, False)
-    if not state and pred > threshold:
+    if not blured and set_blur:
         obs.obs_source_set_enabled(source, True)
     obs.obs_source_release(source)
 
@@ -147,20 +190,7 @@ def update_status():
 
 
 def script_update(settings):
-    global project_dir
-    global conf
-    global layer_name
-    global threshold
-    project_dir = obs.obs_data_get_string(settings, "project_dir")
-    threshold = obs.obs_data_get_double(settings, "pred_threshold")
-    interval = obs.obs_data_get_int(settings, "interval")
-    port =  obs.obs_data_get_int(settings, "port")
-    layer_name = obs.obs_data_get_string(settings, "sources")
-
-    conf = {"monitor": obs.obs_data_get_int(settings, "monitor_num"),
-            "port": port,
-            }
-
-    socket.bind(port)
-    obs.timer_add(update_status, interval)
+    script.update(settings)
+    socket.bind(script.settings['port'])
+    obs.timer_add(update_status, script.settings['interval'])
 

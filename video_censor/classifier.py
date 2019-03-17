@@ -8,6 +8,7 @@ import random
 # from tensorflow import keras
 from prefetch_generator import background
 
+X = "that's how imports work"
 
 @background(max_prefetch=1)
 def screenshot(monitor):
