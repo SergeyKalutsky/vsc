@@ -17,21 +17,3 @@ https://www.youtube.com/watch?v=5ktVHWu-jgc&t=57s
 At this time its nothing more but a working prototype, but there is certainly plenty of room to increase accuracy
 and optimize perfomance.
 
-TODO:
-
-Change pyzmq socket to PULL\PUSH
-
-Add argparser to classifier.py:
-  args: -v, -mon, --port
-  
-Add settings to obs script:
-- port
-- pred threshold
-- query interval ms
-- save filter position button
-
-Add tests:
-- fps test
-- make screenshot
-
-Add proper documentation
