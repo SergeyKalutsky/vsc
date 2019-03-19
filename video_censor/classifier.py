@@ -5,7 +5,7 @@ import json
 import cv2
 import numpy as np
 import random
-# from tensorflow import keras
+from tensorflow import keras
 from prefetch_generator import background
 
 
@@ -57,7 +57,6 @@ def update_monitor(monitor, info):
         monitor["height"] = int(h*scale)
     return monitor
 
-
 def connect(port, socket_type=zmq.REQ):
     context = zmq.Context()
     socket = context.socket(socket_type)
@@ -74,15 +73,11 @@ def parse_conf():
 if __name__=='__main__':
     mon, mon_info, port = parse_conf()
     producer = connect(port)
+    model = keras.models.load_model('mobilenet1.3.h5')
     with mss.mss() as sct:
         monitor = update_monitor(sct.monitors[mon], mon_info)
-        sct_img = sct.grab(monitor)
-        mss.tools.to_png(sct_img.rgb, sct_img.size, output="test.png")
-
-    # model = keras.models.load_model('mobilenet1.3.h5')
-
-    #     for img in screenshot(monitor):
-    #         pred = predict(img)
-    #         producer.send_pyobj(pred)
-    #         producer.recv()
-    #         print(pred)
+        for img in screenshot(monitor):
+            pred = predict(img)
+            producer.send_pyobj(pred)
+            producer.recv()
+            print(pred)
