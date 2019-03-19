@@ -1,6 +1,9 @@
+import sys
 import os
 import json
 import argparse
+import ctypes
+import platform
 
 import zmq
 import mss
@@ -10,8 +13,24 @@ from tensorflow import keras
 from prefetch_generator import background
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-v", help="verbose outpute", action="store_true")
+parser.add_argument("-v", help="verbose output", action="store_true")
 
+def mss_bugfix():
+    """Temporary windows DPI bugfix for mss"""
+
+    os_ = platform.system().lower()
+    if os_ == "windows":
+        version = sys.getwindowsversion()[:2]
+        if version >= (6, 3):
+            # Windows 8.1+
+            # Here 2 = PROCESS_PER_MONITOR_DPI_AWARE, which means:
+            #     per monitor DPI aware. This app checks for the DPI when it is
+            #     created and adjusts the scale factor whenever the DPI changes.
+            #     These applications are not automatically scaled by the system.
+            ctypes.windll.shcore.SetProcessDpiAwareness(2)
+        elif (6, 0) <= version < (6, 3):
+            # Windows Vista, 7, 8 and Server 2012
+            ctypes.windll.user32.SetProcessDPIAware()
 
 @background(max_prefetch=1)
 def screenshot(monitor):
@@ -75,6 +94,7 @@ def parse_conf():
 
 
 if __name__=='__main__':
+    mss_bugfix()
     args = parser.parse_args()
     mon, mon_info, port = parse_conf()
     producer = connect(port)
