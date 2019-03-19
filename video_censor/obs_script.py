@@ -133,7 +133,6 @@ class OBS_Sceneitem():
 
         info = {"source_size": (w, h),
                 "crop": (crop.top, crop.left, crop.right, crop.bottom),
-                "scale": (scale.x, scale.y)
                 }
 
         return info
@@ -183,7 +182,7 @@ def disable_button(properties, button):
 def button_pressed(properties, button):
     conf = script.settings.copy()
     scenitem = OBS_Sceneitem(source_name=conf["source"])
-    conf['source_info'] = scenitem.source_info()
+    conf['monitor_info'] = scenitem.source_info()
     with open(os.path.join(conf["project_dir"], "conf.json"), "w") as f:
             json.dump(conf, f)
     # print("Configurations has been saved")
