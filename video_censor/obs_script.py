@@ -135,11 +135,11 @@ class OBS_Sceneitem():
                 "crop": (crop.top, crop.left, crop.right, crop.bottom),
                 "scale": (scale.x, scale.y)
                 }
-                
+
         return info
 
-
-DEFAULTS = {"project_dir": "",
+path = os.path.dirname(os.path.realpath(__file__))
+DEFAULTS = {"project_dir": path,
             "pred_threshold": 0.5,
             "monitor": 1,
             "port": 5557,
