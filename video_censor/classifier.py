@@ -5,10 +5,9 @@ import json
 import cv2
 import numpy as np
 import random
-# from tensorflow import keras
+from tensorflow import keras
 from prefetch_generator import background
 
-X = "that's how imports work"
 
 @background(max_prefetch=1)
 def screenshot(monitor):
@@ -48,11 +47,11 @@ def parse_conf():
 if __name__=='__main__':
     mon, cor, port = parse_conf()
     producer = connect(port)
-    # model = keras.models.load_model('mobilenet1.3.h5')
+    model = keras.models.load_model('mobilenet1.3.h5')
     with mss.mss() as sct:
         monitor = update_monitor(sct.monitors[mon], cor)
         for img in screenshot(monitor):
-            pred = random.random()
+            pred = predict(img)
             producer.send_pyobj(pred)
             producer.recv()
             print(pred)
