@@ -1,7 +1,9 @@
-import obspython as obs
-import zmq
 import json
 import os
+
+import obspython as obs
+import zmq
+
 
 
 

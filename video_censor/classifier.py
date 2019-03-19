@@ -1,12 +1,16 @@
 import os
+import json
+import argparse
+
 import zmq
 import mss
-import json
 import cv2
 import numpy as np
-import random
 from tensorflow import keras
 from prefetch_generator import background
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-v", help="verbose outpute", action="store_true")
 
 
 @background(max_prefetch=1)
@@ -71,13 +75,15 @@ def parse_conf():
 
 
 if __name__=='__main__':
+    args = parser.parse_args()
     mon, mon_info, port = parse_conf()
     producer = connect(port)
     model = keras.models.load_model('mobilenet1.3.h5')
+    verboseprint = print if args.v else lambda *args, **kwargs: None
     with mss.mss() as sct:
         monitor = update_monitor(sct.monitors[mon], mon_info)
         for img in screenshot(monitor):
             pred = predict(img)
             producer.send_pyobj(pred)
             producer.recv()
-            print(pred)
+            verboseprint(pred)
