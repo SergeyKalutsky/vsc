@@ -14,6 +14,33 @@ https://www.youtube.com/watch?v=mGjkkCDoM00
 
 https://www.youtube.com/watch?v=5ktVHWu-jgc&t=57s
 
-At this time its nothing more but a working prototype, but there is certainly plenty of room to increase accuracy
-and optimize perfomance.
+### Requirements:
 
+- python 3.6+
+- pyzmq
+- mss
+- numpy
+- opencv-python
+- prefetch-generator
+- tensorflow
+
+### Installation:
+
+1. Download python 3.6+
+2. Clone or download this repository
+3. Install dependencies:
+
+  `$ pip install -r /path/to/requirements.txt`
+  
+ 4. Add python path to OBS and upload script.
+ 5. Create new display source, crop the region you want to monitor and apply blur to it
+ 
+ ##### note: 
+ `Before desktop screenshot is fed to classifier it is resized to 224x224 pxl ratio. Obviously a lot of features of
+ the image are lost due to compression. In this case the smaller initial screen region the better will be quality of resized image
+ and prediction accuracy.`
+ 
+ 6. Configure scripts settings:
+
+![img](https://i.imgur.com/YbnOuvM.jpg)
+ 
