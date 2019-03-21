@@ -5,8 +5,6 @@ import obspython as obs
 import zmq
 
 
-
-
 class OBS_Socket():
     def __init__(self, socket_type=zmq.REP, poller_type=zmq.POLLIN):
         self._port = 0
@@ -39,17 +37,18 @@ class OBS_ScriptSettings():
     getter_fun = {bool: obs.obs_data_get_bool,
                   str: obs.obs_data_get_string,
                   int: obs.obs_data_get_int,
-                  float: obs.obs_data_get_double
-                  }
+                  float: obs.obs_data_get_double}
     default_fun = {bool: obs.obs_data_set_default_bool,
                    str: obs.obs_data_set_default_string,
                    int: obs.obs_data_set_default_int,
-                   float: obs.obs_data_set_default_double
-                   }
+                   float: obs.obs_data_set_default_double}
 
     def __init__(self, settings):
         self.prop_obj = None
         self.settings = settings
+
+    def __getattr__(self, arg):
+        return self.settings[arg]
 
     def create_properies(self):
         self.prop_obj = obs.obs_properties_create()
@@ -128,7 +127,7 @@ class OBS_Sceneitem():
         obs.obs_source_release(source)
         return w, h
 
-    def source_info(self):
+    def monitor_info(self):
         w, h = self.source_size()
         crop = self._crop()
         scale = self._scale()
@@ -148,7 +147,7 @@ DEFAULTS = {"project_dir": path,
             "source": ""
 }
 socket = OBS_Socket()
-script = OBS_ScriptSettings(settings=DEFAULTS)
+stgs = OBS_ScriptSettings(settings=DEFAULTS)
 
 
 def script_description():
@@ -156,25 +155,24 @@ def script_description():
 
 
 def script_properties():
-    script.create_properies()
-    script.add_path("project_dir", "Project folder")
-    script.add_float_slider("pred_threshold", "Prediction Threshold", (0.0, 1.0, 0.05))
-    script.add_int("monitor", "Monitor Number", (1, 100, 1))
-    script.add_int("port", "Port", (1, 10000, 1))
-    script.add_int("interval", "Quiery interval(ms)", (1, 10000, 1))
-    script.add_list("source", "Blur Source", source_type="monitor_capture")
-    script.add_button("save", "Save Configurations", button_pressed)
-    script.add_button("disable", "Disable Source", disable_button)
-    return script.prop_obj
+    stgs.create_properies()
+    stgs.add_path("project_dir", "Project folder")
+    stgs.add_float_slider("pred_threshold", "Prediction Threshold", (0.0, 1.0, 0.05))
+    stgs.add_int("monitor", "Monitor Number", (1, 100, 1))
+    stgs.add_int("port", "Port", (1, 10000, 1))
+    stgs.add_int("interval", "Quiery interval(ms)", (1, 10000, 1))
+    stgs.add_list("source", "Blur Source", source_type="monitor_capture")
+    stgs.add_button("save", "Save Configurations", button_pressed)
+    stgs.add_button("disable", "Disable Source", disable_button)
+    return stgs.prop_obj
 
 
 def script_defaults(settings):
-    script.set_defaults(settings)
+    stgs.set_defaults(settings)
 
 
 def disable_button(properties, button):
-    source = script.settings['source']
-    source = obs.obs_get_source_by_name(source)
+    source = obs.obs_get_source_by_name(stgs.source)
     enabled = obs.obs_source_enabled(source)
     if enabled:
         obs.obs_source_set_enabled(source, False)
@@ -182,24 +180,21 @@ def disable_button(properties, button):
 
 
 def button_pressed(properties, button):
-    conf = script.settings.copy()
-    scenitem = OBS_Sceneitem(source_name=conf["source"])
-    conf['monitor_info'] = scenitem.source_info()
-    with open(os.path.join(conf["project_dir"], "conf.json"), "w") as f:
+    conf = stgs.settings.copy()
+    conf['monitor_info'] = OBS_Sceneitem(source_name=stgs.source).monitor_info()
+    with open(os.path.join(stgs.project_dir, "conf.json"), "w") as f:
             json.dump(conf, f)
-    # print("Configurations has been saved")
+    print("Configurations has been saved")
     return True
 
 
 def blur(pred):
     # Switches blur on if probability is high
-    threshold = script.settings['pred_threshold']
-    source = script.settings['source']
-    source = obs.obs_get_source_by_name(source)
+    source = obs.obs_get_source_by_name(stgs.source)
     blured = obs.obs_source_enabled(source)
-    if blured and pred <= threshold:
+    if blured and pred <= stgs.pred_threshold:
         obs.obs_source_set_enabled(source, False)
-    if not blured and pred > threshold:
+    if not blured and pred > stgs.pred_threshold:
         obs.obs_source_set_enabled(source, True)
     obs.obs_source_release(source)
 
@@ -212,6 +207,6 @@ def update_status():
 
 
 def script_update(settings):
-    script.update(settings)
-    socket.bind(script.settings['port'])
-    obs.timer_add(update_status, script.settings['interval'])
+    stgs.update(settings)
+    socket.bind(stgs.port)
+    obs.timer_add(update_status, stgs.interval)
