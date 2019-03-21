@@ -33,7 +33,13 @@ https://www.youtube.com/watch?v=5ktVHWu-jgc&t=57s
   `$ pip install -r /path/to/requirements.txt`
   
  4. Add python path to OBS and upload script.
- 5. Create new display source, crop the region you want to monitor and apply blur to it
+ 5. Create new display source, crop the exact region you want to monitor on the underlying source and apply blur to it
+ 
+ There are two ways to apply blur:
+  - Streameffects https://obsproject.com/forum/resources/stream-effects.578/
+  - Resize filter https://www.youtube.com/watch?v=8PODw_nHUbQ
+  
+  You can use either way, it shouldn't really matter since the source will be disabled most of the time.
  
  ##### note: 
  `Before desktop screenshot is fed to classifier it is resized to 224x224 pxl ratio. Obviously a lot of features of
@@ -43,4 +49,17 @@ https://www.youtube.com/watch?v=5ktVHWu-jgc&t=57s
  6. Configure scripts settings:
 
 ![img](https://i.imgur.com/YbnOuvM.jpg)
+ 
+ - Project folder 
+ Folder with obs_script and classifier. Configuration file will be saved to this folder. The path will be configured automatically if you haven't move obs script anywhere. Otherways you shoud either change the path or move saved conf.json file into project directory.
+ - Prediction threshold
+ From that value depends how "sure" algorithm should be in order to classify something as NSFW. If the value is to low there will be a lot of noise and false positives, if too high it may not react to inapropriate imagery.
+ - Monitor number
+ Number of the monitor, as spesified in os settings.
+ - Port
+ Socket port
+ - Quiry interval(ms)
+ How often should obs script update "blur status", depends on speed of a classifier.
+ - Blur Source
+ Name of a display source used to blur recording
  
