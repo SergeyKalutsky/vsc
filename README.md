@@ -51,15 +51,27 @@ https://www.youtube.com/watch?v=5ktVHWu-jgc&t=57s
 ![img](https://i.imgur.com/YbnOuvM.jpg)
  
  - Project folder 
+ 
  Folder with obs_script and classifier. Configuration file will be saved to this folder. The path will be configured automatically if you haven't move obs script anywhere. Otherways you shoud either change the path or move saved conf.json file into project directory.
  - Prediction threshold
+ 
  From that value depends how "sure" algorithm should be in order to classify something as NSFW. If the value is to low there will be a lot of noise and false positives, if too high it may not react to inapropriate imagery.
  - Monitor number
+ 
  Number of the monitor, as spesified in os settings.
  - Port
+ 
  Socket port
+ 
  - Quiry interval(ms)
+ 
  How often should obs script update "blur status", depends on speed of a classifier.
  - Blur Source
+ 
  Name of a display source used to blur recording
+ 
+ 7. Save configurations and disable source
+ 8. run classifier.py
+ 
+  `$ python path/to/classifier.py`
  
