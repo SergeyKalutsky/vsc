@@ -1,11 +1,13 @@
 # videostream_censor
-Real time video recording censor 
-
-<a href="http://freegifmaker.me/images/2ewNE/"><img src="http://i.freegifmaker.me/1/5/5/1/5/1/15515155322964920.gif?1551515545" alt="gifs website"/> <a href="http://freegifmaker.me/images/2ewNK/"><img src="http://i.freegifmaker.me/1/5/5/1/5/1/15515157402964953.gif?1551515751" alt="gifs website"/></a>
+Real time videostream censor. Project combines OBS script and mobilenet model for real time NSFW classifiction of the video stream. In case of inappropriate imagery detection script tells OBS to blur recording.
 
 
-Project combines obs script and mobilenets models for real time NSFW classifiction of the video stream.
-In case of detection of inappropriate imagery script tells obs to blur recording.
+<a href="http://freegifmaker.me/images/2ewNE/">
+  <img src="http://i.freegifmaker.me/1/5/5/1/5/1/15515155322964920.gif?1551515545" alt="gifs website"/> 
+</a>
+<a href="http://freegifmaker.me/images/2ewNK/">
+   <img src="http://i.freegifmaker.me/1/5/5/1/5/1/15515157402964953.gif?1551515751" alt="gifs website"/>
+</a>
 
 Small demonstrations of how it works:
 
