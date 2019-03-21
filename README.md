@@ -13,8 +13,7 @@ https://www.youtube.com/watch?v=mGjkkCDoM00
 
 https://www.youtube.com/watch?v=5ktVHWu-jgc&t=57s
 
----------------------------------
-### Requirements
+## Requirements
 
 - python 3.6+
 - pyzmq
@@ -23,14 +22,15 @@ https://www.youtube.com/watch?v=5ktVHWu-jgc&t=57s
 - opencv-python
 - prefetch-generator
 - tensorflow
----------------------------------
-### Installation
+
+## Installation
 
 1. Download python 3.6+
 2. Clone or download this repository
 3. Install dependencies:
-
-  `$ pip install -r /path/to/requirements.txt`
+<div class="highlight highlight-source-shell">
+  <pre>$ pip install -r /path/to/requirements.txt</pre>
+ </div>
   
  4. Add python path to OBS and upload script.
  5. Create new display source, crop the exact region you want to monitor on the underlying source and apply blur to it
@@ -41,7 +41,7 @@ https://www.youtube.com/watch?v=5ktVHWu-jgc&t=57s
   
   You can use either way, it shouldn't really matter since the source will be disabled most of the time.
  
- ##### note: 
+ #### Important note: 
  `Before desktop screenshot is fed to classifier it is resized to 224x224 pxl ratio. Obviously a lot of features of
  the image are lost due to compression. In this case the smaller initial screen region the better will be quality of resized image
  and prediction accuracy.`
@@ -88,6 +88,7 @@ https://www.youtube.com/watch?v=5ktVHWu-jgc&t=57s
  
  7. Save configurations and disable source
  8. run classifier.py
- 
-  `$ python path/to/classifier.py`
+ <div class="highlight highlight-source-shell">
+  <pre>$ python path/to/classifier.py -v</pre>
+ </div>
  
