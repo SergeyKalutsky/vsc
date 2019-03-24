@@ -29,7 +29,7 @@ class OBS_Socket():
         return self.socket.recv_pyobj()
 
     def send(self, msg=b""):
-        return self.socket.send(msg)
+        return self.socket.send_pyobj(msg)
 
 
 class OBS_ScriptSettings():
@@ -138,9 +138,7 @@ class OBS_Sceneitem():
 
         return info
 
-path = os.path.dirname(os.path.realpath(__file__))
-DEFAULTS = {"project_dir": path,
-            "pred_threshold": 0.5,
+DEFAULTS = {"pred_threshold": 0.5,
             "monitor": 1,
             "port": 5557,
             "interval": 30,
@@ -156,13 +154,11 @@ def script_description():
 
 def script_properties():
     stgs.create_properies()
-    # stgs.add_path("project_dir", "Project folder")
     stgs.add_float_slider("pred_threshold", "Prediction Threshold", (0.0, 1.0, 0.05))
     stgs.add_int("monitor", "Monitor Number", (1, 100, 1))
     stgs.add_int("port", "Port", (1, 10000, 1))
     stgs.add_int("interval", "Quiery interval(ms)", (1, 10000, 1))
     stgs.add_list("source", "Blur Source", source_type="monitor_capture")
-    # stgs.add_button("save", "Save Configurations", button_pressed)
     stgs.add_button("disable", "Disable Source", disable_button)
     return stgs.prop_obj
 
@@ -179,15 +175,6 @@ def disable_button(properties, button):
     obs.obs_source_release(source)
 
 
-def button_pressed(properties, button):
-    conf = stgs.settings.copy()
-    conf['monitor_info'] = OBS_Sceneitem(source_name=stgs.source).monitor_info()
-    with open(os.path.join(stgs.project_dir, "conf.json"), "w") as f:
-            json.dump(conf, f)
-    print("Configurations has been saved")
-    return True
-
-
 def blur(pred):
     # Switches blur on if probability is high
     source = obs.obs_get_source_by_name(stgs.source)
@@ -199,11 +186,20 @@ def blur(pred):
     obs.obs_source_release(source)
 
 
+def monitor_info():
+    conf = OBS_Sceneitem(source_name=stgs.source).monitor_info()
+    conf['monitor_num'] = stgs.monitor
+    return conf
+
+
 def update_status():
     if socket.poll():
         msg = socket.recv()
-        socket.send()
-        blur(msg)
+        if msg['msg'] == 'screen':
+            socket.send(monitor_info())
+        elif msg['msg'] == 'predict':
+            socket.send()
+            blur(msg['pred'])
 
 
 def script_update(settings):

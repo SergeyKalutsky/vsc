@@ -7,9 +7,9 @@ from prefetch_generator import background
 
 
 class Monitor():
-    def __init__(self, mss, monitor_num=1, monitor_info=None):
+    def __init__(self, mss, monitor_info=None):
         self.mss = mss
-        self.monitor = self.mss.monitors[monitor_num]
+        self.monitor = self.mss.monitors[monitor_info['monitor_num']]
         self.w, self.h = monitor_info["source_size"]
         self.top, self.left, self.right, self.bottom = monitor_info["crop"]
         self._mss_bugfix()

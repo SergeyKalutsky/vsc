@@ -11,12 +11,7 @@ ROOT_DIR = path = os.path.dirname(os.path.realpath(__file__))
 parser = argparse.ArgumentParser()
 parser.add_argument("-v", help="verbose output", action="store_true")
 parser.add_argument("--scrshot", help="make screenshot of a selected region", action="store_true")
-
-
-def parse_conf():
-    with open(os.path.join(ROOT_DIR, 'conf.json'), 'r') as f:
-        conf = json.load(f)
-    return conf["monitor"], conf["monitor_info"], conf["port"]
+parser.add_argument("--port", help="socket port", type=int, default=5557)
 
 
 def connect(port, socket_type=zmq.REQ):
@@ -28,20 +23,22 @@ def connect(port, socket_type=zmq.REQ):
 
 def main():
     args = parser.parse_args()
-    mon, mon_info, port = parse_conf()
     verboseprint = print if args.v else lambda *args, **kwargs: None
-    socket = connect(port)
+    socket = connect(args.port)
+    socket.send_pyobj({'msg': 'screen'})
+    mon_info = socket.recv_pyobj()
     with mss.mss() as sct:
-        monitor = Monitor(sct, mon, mon_info)
+        monitor = Monitor(sct, mon_info)
         if args.scrshot:
             monitor.test_screenshot()
         else:
             from tensorflow import keras
+            
             model = keras.models.load_model(os.path.join(ROOT_DIR, 'mobilenet1.3.h5'))
             for img in monitor.screenshot():
                 pred = model.predict(np.asarray([img]))[0][0]
-                socket.send_pyobj(pred)
-                socket.recv()
+                socket.send_pyobj({'msg': 'predict', 'pred': pred})
+                socket.recv_pyobj()
                 verboseprint(pred)
 
 if __name__=='__main__':
