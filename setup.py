@@ -7,5 +7,8 @@ setup(name='video_censor',
       author='Sergey Kalutsky',
       author_email='skalutsky@gmail.com',
       license='MIT',
+      entry_points={'console_scripts': [
+        'vsc = video_censor.classifier:main',
+      ]},
       packages=['video_censor'],
       zip_safe=False)

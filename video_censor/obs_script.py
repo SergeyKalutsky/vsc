@@ -156,13 +156,13 @@ def script_description():
 
 def script_properties():
     stgs.create_properies()
-    stgs.add_path("project_dir", "Project folder")
+    # stgs.add_path("project_dir", "Project folder")
     stgs.add_float_slider("pred_threshold", "Prediction Threshold", (0.0, 1.0, 0.05))
     stgs.add_int("monitor", "Monitor Number", (1, 100, 1))
     stgs.add_int("port", "Port", (1, 10000, 1))
     stgs.add_int("interval", "Quiery interval(ms)", (1, 10000, 1))
     stgs.add_list("source", "Blur Source", source_type="monitor_capture")
-    stgs.add_button("save", "Save Configurations", button_pressed)
+    # stgs.add_button("save", "Save Configurations", button_pressed)
     stgs.add_button("disable", "Disable Source", disable_button)
     return stgs.prop_obj
 
