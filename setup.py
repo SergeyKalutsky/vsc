@@ -10,5 +10,12 @@ setup(name='video_censor',
       entry_points={'console_scripts': [
         'vsc = video_censor.classifier:main',
       ]},
+      install_requires=[
+        'pyzmq',
+        'mss',
+        'numpy',
+        'opencv-python',
+        'prefetch-generator'
+      ],
       packages=['video_censor'],
-      zip_safe=False)
+      zip_safe=True)
