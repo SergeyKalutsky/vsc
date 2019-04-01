@@ -9,48 +9,49 @@ Real time videostream censor. Project combines OBS script and mobilenet model fo
    <img src="http://i.freegifmaker.me/1/5/5/1/5/1/15515157402964953.gif?1551515751" alt="gifs website"/>
 </a>
 
-Small demonstrations of how it works:
+Small demonstrations of how it works. (Recording looks a little bit weird because it was done on gcloud VM):
 
 https://www.youtube.com/watch?v=mGjkkCDoM00
 
 https://www.youtube.com/watch?v=5ktVHWu-jgc&t=57s
 
 ## Requirements
+### To run:
+- Tensorflow
+- Python 3.6+
+- OBS Studio
 
-- python 3.6+
-- pyzmq
-- mss
-- numpy
-- opencv-python
-- prefetch-generator
-- tensorflow
+### To run fast:
+- OBS Studio
+- Python 3.6+
+- GPU version of Tensorflow
+- NVIDIA® GPU card with CUDA® Compute Capability 3.5 or higher. See the list of CUDA-enabled [GPU cards](https://developer.nvidia.com/cuda-gpus)
 
 ## Installation
 
 1. Download python 3.6+
-2. Clone or download this repository
-3. Install dependencies:
+2. Install Tensorflow
+3. Clone or download this repository
+4. Install dependencies:
 <div class="highlight highlight-source-shell">
   <pre>$ pip install -r /path/to/requirements.txt</pre>
  </div>
   
- 4. Add python path to OBS and upload script.
- 5. Create new display source, crop the exact region you want to monitor on the underlying source and apply blur to it
+ 5. Add python path to OBS and upload script.
+ 6. Create new display source, crop the exact region you want to monitor on the underlying source and apply blur to it
  
 #### There are two ways to apply blur:
   - Streameffects https://obsproject.com/forum/resources/stream-effects.578/
   - Resize filter https://www.youtube.com/watch?v=8PODw_nHUbQ
   
-  You can use either way, it shouldn't really matter since the source will be disabled most of the time.
+  You can do either way, it shouldn't really matter since the source will be disabled most of the time.
  
  #### Important note: 
- `Before desktop screenshot is fed to classifier it is resized to 224x224 pxl ratio. Obviously a lot of features of
- the image are lost due to compression. In this case the smaller initial screen region the better will be quality of resized image
- and prediction accuracy.`
+Before desktop screenshot is fed to classifier it is resized to 224x224 pxl ratio. Obviously a lot of features of the image are lost due to compression. In this case the smaller initial screen region the better will be quality of resized image and prediction accuracy.
  
  6. Configure scripts settings:
 
-![img](https://i.imgur.com/YbnOuvM.jpg)
+![img](https://imgur.com/ofxN0HW.jpg)
 <table>
   <thead valign="bottom">
     <tr>
@@ -62,10 +63,6 @@ https://www.youtube.com/watch?v=5ktVHWu-jgc&t=57s
       </th>
     </tr>
   </thead>
-<tr> 
-  <td>Project folder</td>
-  <td>Folder with obs_script and classifier. Configuration file will be saved to this folder. the path will be configured automatically if you haven't move obs script anywhere. otherways you shoud either change the path or move saved conf.json file into project directory.    </td>
-</tr>
 <tr> 
   <td>Prediction threshold</td>
   <td>From that value depends how "sure" algorithm should be in order to classify something as NSFW. If the value is to low there will be a lot of noise and false positives, if too high it may not react to inapropriate imagery.    </td>
@@ -88,8 +85,8 @@ https://www.youtube.com/watch?v=5ktVHWu-jgc&t=57s
 </tr>
 </table>
  
- 7. Save configurations and disable source
- 8. run classifier.py
+ 7. Disable source
+ 8. Run classifier.py
  <div class="highlight highlight-source-shell">
   <pre>$ python path/to/classifier.py -v</pre>
  </div>
