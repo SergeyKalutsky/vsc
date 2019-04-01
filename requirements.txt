@@ -3,5 +3,5 @@ mss==4.0.2
 numpy==1.16.2
 opencv-python==4.0.0.21
 prefetch-generator==1.0.1
-tensorflow==1.13.1
+
 
