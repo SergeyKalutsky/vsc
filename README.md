@@ -81,7 +81,7 @@ Before desktop screenshot is fed to classifier it is resized to 224x224 pxl rati
 </tr>
 <tr> 
   <td>Blur Source</td>
-  <td>Name of thr display source used to blur recording.</td>
+  <td>Name of the display source used to blur recording.</td>
 </tr>
 </table>
  
