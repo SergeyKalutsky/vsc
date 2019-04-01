@@ -88,6 +88,6 @@ Before desktop screenshot is fed to classifier it is resized to 224x224 pxl rati
  7. Disable source
  8. Run classifier.py
  <div class="highlight highlight-source-shell">
-  <pre>$ python path/to/classifier.py -v</pre>
+  <pre>$ python path/to/classifier.py -v --port=5557</pre>
  </div>
  
