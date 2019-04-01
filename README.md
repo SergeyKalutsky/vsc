@@ -1,5 +1,5 @@
 # videostream_censor
-Real time videostream censor. Project combines OBS script and mobilenet model for real time NSFW classifiction of the video stream. In case of inappropriate imagery detection script tells OBS to blur recording.
+Real-time video stream censor. The project combines OBS script and mobilenet model for real-time NSFW classification of the video stream captured from display source. In case of inappropriate imagery detection, the script tells OBS to blur recording.
 
 
 <a href="http://freegifmaker.me/images/2ewNE/">
@@ -9,7 +9,7 @@ Real time videostream censor. Project combines OBS script and mobilenet model fo
    <img src="http://i.freegifmaker.me/1/5/5/1/5/1/15515157402964953.gif?1551515751" alt="gifs website"/>
 </a>
 
-Small demonstrations of how it works. (Recording looks a little bit weird because it was done on gcloud VM):
+Small demonstration of how it works. (Recording looks a little bit weird because it was done on gcloud VM):
 
 https://www.youtube.com/watch?v=mGjkkCDoM00
 
@@ -47,7 +47,7 @@ https://www.youtube.com/watch?v=5ktVHWu-jgc&t=57s
   You can do either way, it shouldn't really matter since the source will be disabled most of the time.
  
  #### Important note: 
-Before desktop screenshot is fed to classifier it is resized to 224x224 pxl ratio. Obviously a lot of features of the image are lost due to compression. In this case the smaller initial screen region the better will be quality of resized image and prediction accuracy.
+Before desktop screenshot is fed to classifier it is resized to 224x224 pxl ratio. Obviously, a lot of features of the image are lost due to compression. In this case, the smaller initial screen region the better will be quality of the resized image and prediction accuracy.
  
  6. Configure scripts settings:
 
@@ -65,11 +65,11 @@ Before desktop screenshot is fed to classifier it is resized to 224x224 pxl rati
   </thead>
 <tr> 
   <td>Prediction threshold</td>
-  <td>From that value depends how "sure" algorithm should be in order to classify something as NSFW. If the value is to low there will be a lot of noise and false positives, if too high it may not react to inapropriate imagery.    </td>
+  <td>How "sure" algorithm should be in order to classify something as NSFW.  If the value is to low there will be a lot of noise and false positives, if too high it may not detect problematic recording.</td>
 </tr>
 <tr> 
   <td>Monitor number</td>
-  <td>Number of the monitor, as spesified in os settings.</td>
+  <td>Number of the display source monitor, as spesified in os settings.</td>
 </tr>
 <tr> 
   <td>Port</td>
@@ -81,7 +81,7 @@ Before desktop screenshot is fed to classifier it is resized to 224x224 pxl rati
 </tr>
 <tr> 
   <td>Blur Source</td>
-  <td>Name of a display source used to blur recording.</td>
+  <td>Name of thr display source used to blur recording.</td>
 </tr>
 </table>
  
