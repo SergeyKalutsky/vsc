@@ -50,6 +50,10 @@ class Monitor():
         self.monitor["height"] = self.h
 
     def _scale(self):
+        if self.w == 0:
+            self.w = 1
+        if self.h == 0:
+            self.h = 1
         scale_w = self.monitor["width"]/self.w
         scale_h = self.monitor["height"]/self.h
         self.top = int(self.top*scale_w)
